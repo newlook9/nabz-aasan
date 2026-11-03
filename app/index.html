@@ -84,6 +84,7 @@ footer{max-width:1180px;margin:0 auto;padding:6px 14px 30px;color:var(--mute);fo
 .rp .ft{margin-top:14px;border-top:1px solid #cbd7d0;font-size:15px;color:#555}
 dialog{width:min(92vw,460px);border:1px solid var(--line);border-radius:14px;background:var(--card);color:var(--ink);padding:12px 16px;font-family:var(--f)}dialog::backdrop{background:rgba(0,0,0,.55)}
 .mk{color:var(--gold);font-weight:400}
+  .fcl{display:flex;align-items:center;gap:8px;cursor:pointer}.fcl input{width:22px;height:22px;accent-color:var(--pine2);flex:none}.fh{margin:6px 0 0;font-size:19px;color:var(--pine);font-weight:400}
 @media print{body.pr>*:not(.rp){display:none!important}body.pr .rp{position:static;width:auto;padding:0}body{background:#fff}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -132,11 +133,11 @@ const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;',
 const F=[{k:'p',n:'نبض کی رفتار',min:1,max:3,v:1,c:[['مشرف',1],['معتدل',2],['منخفض',3]]},
  {k:'l',n:'نبض کی لمبائی',min:1,max:4,v:3,c:[['قصیر',1.5],['معتدل',2.5],['طویل',4]]},
  {k:'w',n:'نبض کی چوڑائی',min:1,max:3,v:2,c:[['ضیق',1],['معتدل',2],['عریض',3]]}];
-const SEC=[['dash','ڈیش بورڈ','ڈیش بورڈ'],['habits','علامات','عادات و علامات'],['tahrik','تحریک','تحریک کے عوارضات'],['tahlil','تحلیل','تحلیل کے عوارضات'],['taskeen','تسکین','تسکین کے عوارضات'],['takhdeer','تخدیر','تخدیر کے عوارضات'],['ilaj','علاج','علاج و فارماکوپیا'],['food','غذا','غذائی چارٹ'],['hist','ہسٹری','مریضوں کی ہسٹری'],['backup','بیک اپ','بیک اپ اور بحالی']];
+const SEC=[['dash','ڈیش بورڈ','ڈیش بورڈ'],['chat','سوال جواب','سوال جواب'],['habits','علامات','عادات و علامات'],['tahrik','تحریک','تحریک کے عوارضات'],['tahlil','تحلیل','تحلیل کے عوارضات'],['taskeen','تسکین','تسکین کے عوارضات'],['takhdeer','تخدیر','تخدیر کے عوارضات'],['ilaj','علاج','علاج و فارماکوپیا'],['food','غذا','غذائی چارٹ'],['hist','ہسٹری','مریضوں کی ہسٹری'],['backup','بیک اپ','بیک اپ اور بحالی']];
 const MEDS=['محرک','شدید محرک','ملیّن','مُسہل','اکسیر','تریاق'];
 const FM=[[2,3,4,5],[4,5,6,7],[4,5,6,7],[1,6,7,8],[1,6,7,8],[1,2,3,8],[1,2,3,8],[2,3,4,5]];
 const NC=i=>`hsl(${i*45+160} 38% 42%)`;
-let tab='dash',mode='am',cur={ok:false},q='',pend=null,sel=new Set(),ins={},lastI=-9;
+let tab='dash',mode='am',cur={ok:false},q='',pend=null,sel=new Set(),fcs=new Set(),ins={},lastI=-9;
 const valid=(f,x)=>Number.isFinite(x)&&x>=f.min&&x<=f.max;
 const catOf=(f,x)=>{for(const [n,m] of f.c)if(x<=m)return n;return null};
 function diag(v){const cs=F.map((f,i)=>valid(f,v[i])?catOf(f,v[i]):null);if(cs.includes(null))return{ok:false,cs};
@@ -153,25 +154,28 @@ function wheel(i,health){const cx=160,cy=160,R=112,rr=34;let s='';const pos=k=>{
  s+=`<text x="${cx}" y="${cy+6}" text-anchor="middle" font-size="18" fill="var(--mute)">${health?'صحت':'دائرۂ نبض'}</text>`;$('#wh').innerHTML=s;
  $('#lg').innerHTML=i>=0?`<span><i style="background:var(--ink)"></i>موجودہ: ${T[i]}</span><span><i style="background:var(--gold)"></i>امالہ: ${T[(i+2)%8]}</span><span><i style="background:var(--bad)"></i>ضد: ${T[(i+4)%8]}</span>`:''}
 function upd(){F.forEach(f=>{const c=valid(f,f.v)?catOf(f,f.v):null;$('#c'+f.k).innerHTML=c?`درجہ: <b>${c}</b>`:''});
- const d=diag(vals());cur=d;if(d.i!==lastI){sel.clear();ins={};lastI=d.i}const bad=F.filter(f=>!valid(f,f.v));
+ const d=diag(vals());cur=d;if(d.ok&&d.i!==lastI){sel.clear();ins={};fcs=new Set(d.i>=0?FM[d.i]:[]);lastI=d.i}const bad=F.filter(f=>!valid(f,f.v));
  $('#er').textContent=bad.length?'درست لکھیں: '+bad.map(f=>`${f.n} ${f.min} سے ${f.max} کے درمیان ہو`).join('، '):'';
  $('#rc').innerHTML=d.ok?d.cs.map(c=>`<span class="chip">${c}</span>`).join(''):'';
  $('#rt').textContent=!d.ok?'—':d.health?'صحت (معتدل)':T[d.i];wheel(d.ok?d.i:-1,d.health);render()}
 function parts(t){const a=t.split(/(افعال|نفع خاص|دیگر)\s*:\s*/),o=[];if(a[0].trim())o.push(['ترکیب و طریقہ استعمال',a[0]]);for(let k=1;k<a.length;k+=2)o.push([a[k],a[k+1]||'']);return o.map(([h,x])=>`<h4>${h}</h4><p>${esc(x.replace(/\s*ـ\s*$/,'').trim())}</p>`).join('')}
 const foodItems=n=>D.food[n-1].replace(/^\s*\d+\s*\.\s*/,'').split('ـ').map(s=>s.trim()).filter(Boolean);
 const H=t=>`<h2>${t}</h2>`;
-function upSc(){$('#sc').textContent='پرچی میں شامل نسخے: '+sel.size}
+function upSc(){$('#sc').textContent='پرچی میں شامل نسخے: '+sel.size+' — غذائی چارٹ: '+fcs.size}
 function render(){const el=$('#ct'),d=cur;upSc();
  $('#tb').innerHTML=SEC.map(([k,n])=>`<button class="tab" role="tab" aria-selected="${k===tab}" data-k="${k}">${n}</button>`).join('');
  if(tab==='dash'){el.innerHTML=dashHTML();return}
  if(tab==='hist'){el.innerHTML=H('مریضوں کی ہسٹری')+`<input class="in" id="hs" placeholder="نام یا موبائل نمبر سے تلاش کریں" aria-label="تلاش" value="${esc(q)}"><div id="hl">${histHTML()}</div>`;$('#hs').oninput=e=>{q=e.target.value;$('#hl').innerHTML=histHTML()};return}
  if(tab==='backup'){el.innerHTML=bkHTML();return}
+ if(tab==='chat'){NabzChat.show(el);return}
  if(!d.ok){el.innerHTML='<div class="empty">پہلے تینوں پیمائشیں مقررہ حد کے اندر درج کریں۔ اس کے بعد تشخیص اور تمام تفصیلات یہاں ظاہر ہو جائیں گی۔</div>';return}
  if(d.health){el.innerHTML=H('صحت')+'<div class="ok">آپ کی صحت بالکل ٹھیک ہے۔ تینوں پیمائشیں معتدل ہیں، اس لیے علاج کی ضرورت نہیں۔</div>';return}
  const t=T[d.i];let h=H(SEC.find(s=>s[0]===tab)[2])+`<p class="sub">قسم نبض: ${t}</p>`;
  if(D[tab]&&D[tab][t])h+=`<p class="txt">${esc(D[tab][t])}</p>`;
  if(tab==='ilaj'){const tt=T[(d.i+(mode==='am'?2:4))%8];h+=`<div class="seg"><button class="tab" role="tab" aria-selected="${mode==='am'}" data-m="am">علاج بالامالہ</button><button class="tab" role="tab" aria-selected="${mode==='zd'}" data-m="zd">علاج بالضد</button></div><p class="sub">نسخے کی قسم: ${tt}</p>`+MEDS.map(m=>{const x=D.med[m][tt],k=tt+'|'+m;return`<details><summary><span>${m}<b class="mk">${sel.has(k)?' ✓':''}</b></span></summary><div class="med">${x?`<label class="sub"><input type="checkbox" data-sel="${k}" ${sel.has(k)?'checked':''}> پرچی میں شامل کریں (${tt} ${m})</label><textarea class="in" data-ins="${k}" rows="2" placeholder="طریقہ استعمال / ہدایات (مثلاً صبح دوپہر شام، پانی یا دودھ کے ساتھ، مقدار)" aria-label="ہدایات" maxlength="300" ${sel.has(k)?'':'hidden'}>${esc(ins[k]||'')}</textarea>`+parts(x):'<p class="sub">اس ترتیب کے لیے ایکسل فائل میں نسخہ درج نہیں۔</p>'}</div></details>`}).join('')}
- if(tab==='food')h+=`<p class="sub">اس قسم کے لیے تجویز کردہ چار چارٹ</p><div class="gr">`+FM[d.i].map(n=>`<div class="card"><h3>چارٹ ${n}</h3><div class="fc">${foodItems(n).map(s=>`<span>${esc(s)}</span>`).join('')}</div></div>`).join('')+'</div>';
+ if(tab==='food'){const rec=FM[d.i],oth=[1,2,3,4,5,6,7,8].filter(n=>!rec.includes(n)),
+  card=(n,pz)=>`<div class="card"><label class="fcl"><input type="checkbox" data-fc="${n}" ${fcs.has(n)?'checked':''}><h3>چارٹ ${n}${pz?' — پرہیز':''}</h3></label><div class="fc">${foodItems(n).map(s=>`<span>${esc(s)}</span>`).join('')}</div></div>`;
+  h+=`<p class="sub">پرچی میں شامل کرنے کے لیے چارٹ منتخب کریں۔ اس قسم کے تجویز کردہ چار چارٹ پہلے سے منتخب ہیں؛ جو نہ چاہیں ہٹا دیں اور کوئی اور چارٹ شامل کر لیں۔ تجویز کردہ کے علاوہ جو چارٹ چنیں گے وہ پرچی میں «پرہیز» کے عنوان سے جائیں گے۔ نسخے نہ چنیں تو پرچی میں صرف غذائیں جائیں گی۔</p><div class="bar"><button class="btn o" type="button" data-fa="rec">تجویز کردہ سب</button><button class="btn o" type="button" data-fa="none">کوئی چارٹ نہیں</button></div><h3 class="fh">تجویز کردہ چارٹ</h3><div class="gr">${rec.map(n=>card(n,0)).join('')}</div><details${oth.some(n=>fcs.has(n))?' open':''}><summary><span>باقی چارٹ (اس قسم کے لیے پرہیز)</span></summary><div class="gr">${oth.map(n=>card(n,1)).join('')}</div></details>`}
  el.innerHTML=h}
 // ریکارڈ
 const LK='nabz-aasan-records-v2';
@@ -200,9 +204,11 @@ function repHTML(r){const d=diag(r.v),t=tname(d),dr=DR||{name:D.name,phone:D.pho
  if(d.health)h+='<p style="margin-top:8px">صحت بالکل ٹھیک ہے۔</p>';
  else{const rx=(r.rx||[]).map(k=>k.split('|')).filter(([tt,m])=>(D.med[m]||{})[tt]);
   if(rx.length)h+='<h3>تجویز کردہ نسخہ</h3>'+rx.map(([tt,m])=>{const s=(r.ins||{})[tt+'|'+m];return`<p><b>${tt} ${m}</b>${s?' — '+esc(s):''}</p>`}).join('');
-  h+='<h3>غذائی چارٹ</h3>'+FM[d.i].map(n=>`<p>چارٹ ${n}: ${esc(foodItems(n).join('، '))}</p>`).join('')}
+  const fc=(Array.isArray(r.fc)?r.fc:FM[d.i]).filter(n=>n>=1&&n<=8),gd=fc.filter(n=>FM[d.i].includes(n)).sort((a,b)=>a-b),bd=fc.filter(n=>!FM[d.i].includes(n)).sort((a,b)=>a-b),li=n=>`<p>چارٹ ${n}: ${esc(foodItems(n).join('، '))}</p>`;
+   if(gd.length)h+='<h3>غذائی چارٹ</h3>'+gd.map(li).join('');
+   if(bd.length)h+='<h3>پرہیز (ان چارٹس کی غذائیں نہ کھائیں)</h3>'+bd.map(li).join('')}
  return`<div class="rp">${h}<div class="ft" dir="ltr">Developed By Muhammad Ashraf — WhatsApp 923083286645</div></div>`}
-function curRec(){return{n:$('#pn').value.trim(),ph:$('#pp').value.trim(),age:$('#pa').value.trim(),g:$('#pg').value,sym:$('#ps').value.trim(),notes:$('#pt').value.trim(),ts:new Date().toISOString(),v:vals(),rx:[...sel],ins:Object.fromEntries([...sel].map(k=>[k,(ins[k]||'').trim()]).filter(x=>x[1]))}}
+function curRec(){return{n:$('#pn').value.trim(),ph:$('#pp').value.trim(),age:$('#pa').value.trim(),g:$('#pg').value,sym:$('#ps').value.trim(),notes:$('#pt').value.trim(),ts:new Date().toISOString(),v:vals(),rx:[...sel],fc:[...fcs].sort((a,b)=>a-b),ins:Object.fromEntries([...sel].map(k=>[k,(ins[k]||'').trim()]).filter(x=>x[1]))}}
 const waNum=p=>{let n=String(p||'').replace(/\D/g,'');if(n.startsWith('00'))n=n.slice(2);else if(n.startsWith('0'))n='92'+n.slice(1);else if(n.length===10&&n[0]==='3')n='92'+n;return n};
 function waMsg(r){const d=diag(r.v),dr=DR||{},LR='\u200E',L=[];
  const hn=[dr.name,dr.clinic].filter(Boolean).join(' — ');if(hn)L.push(LR+hn);if(dr.addr)L.push(LR+dr.addr);if(dr.phone)L.push(LR+'Phone: '+dr.phone);
@@ -214,7 +220,10 @@ function waMsg(r){const d=diag(r.v),dr=DR||{},LR='\u200E',L=[];
  if(d.health){L.push('','صحت بالکل ٹھیک ہے۔');return L.join('\n')}
  const rx=(r.rx||[]).map(k=>k.split('|')).filter(([tt,x])=>(D.med[x]||{})[tt]);
  if(rx.length)L.push('','تجویز کردہ نسخہ:',...rx.map(([tt,x])=>{const s=(r.ins||{})[tt+'|'+x];return'• '+tt+' '+x+(s?' — '+s:'')}));
- L.push('','غذائی چارٹ:',...FM[d.i].map(n=>`چارٹ ${n}: ${foodItems(n).join('، ')}`));return L.join('\n')}
+ const fc=(Array.isArray(r.fc)?r.fc:FM[d.i]).filter(n=>n>=1&&n<=8),gd=fc.filter(n=>FM[d.i].includes(n)).sort((a,b)=>a-b),bd=fc.filter(n=>!FM[d.i].includes(n)).sort((a,b)=>a-b),li=n=>`چارٹ ${n}: ${foodItems(n).join('، ')}`;
+  if(gd.length)L.push('','غذائی چارٹ:',...gd.map(li));
+  if(bd.length)L.push('','پرہیز (ان چارٹس کی غذائیں نہ کھائیں):',...bd.map(li));
+  return L.join('\n')}
 function sendWA(r){if(!diag(r.v).ok){toast('پہلے درست پیمائشیں درج کریں');return}
  const m=waMsg(r),n=waNum(r.ph);
  if(!n)toast('مریض کا نمبر درج نہیں۔ واٹس ایپ میں مریض خود چنیں');
@@ -260,7 +269,7 @@ function bkParse(tx){let j;try{j=JSON.parse(tx)}catch(e){return{err:'فائل د
  const S=x=>typeof x==='string'?x.slice(0,700):'',recs=[],seen=new Set();
  for(const r of j.records.slice(0,5000)){if(!r||!Array.isArray(r.v)||r.v.length!==3)continue;const v=r.v.map(Number),ts=new Date(r.ts);if(isNaN(ts)||!diag(v).ok)continue;
   const id=Number(r.id)||ts.getTime();if(seen.has(id))continue;seen.add(id);const ins={};if(r.ins&&typeof r.ins==='object')for(const k in r.ins)ins[k.slice(0,120)]=S(r.ins[k]);
-  recs.push({id,n:S(r.n),ph:S(r.ph),age:S(r.age),g:S(r.g),sym:S(r.sym),notes:S(r.notes),ts:ts.toISOString(),v,i:diag(v).i,rx:Array.isArray(r.rx)?r.rx.map(S).slice(0,40):[],ins})}
+  recs.push({id,n:S(r.n),ph:S(r.ph),age:S(r.age),g:S(r.g),sym:S(r.sym),notes:S(r.notes),ts:ts.toISOString(),v,i:diag(v).i,rx:Array.isArray(r.rx)?r.rx.map(S).slice(0,40):[],fc:Array.isArray(r.fc)?[...new Set(r.fc.map(Number).filter(n=>n>=1&&n<=8))]:null,ins})}
  const o=j.doctor,doc=o&&typeof o==='object'&&S(o.name)?{name:S(o.name),clinic:S(o.clinic),addr:S(o.addr),phone:S(o.phone)}:null;
  return{recs,doc,total:j.records.length,date:j.exported}}
 function bkApply(mode){if(!pend)return;const cu=load();let out;
@@ -288,14 +297,16 @@ document.addEventListener('click',e=>{const t=e.target.closest('[data-k],[data-m
  else if(act==='bkup')$('#bkf').click();
  else if(act==='bkmerge')bkApply('merge');
  else if(act==='bkrep'){if(confirm('موجودہ تمام ریکارڈ مٹ کر فائل کے ریکارڈ آ جائیں گے۔ جاری رکھیں؟'))bkApply('rep')}
- else if(act==='open'&&r){$('#pn').value=r.n||'';$('#pp').value=r.ph||'';$('#pa').value=r.age||'';$('#pg').value=r.g||'';$('#ps').value=r.sym||'';$('#pt').value=r.notes||'';setVals(r.v);sel=new Set(r.rx||[]);ins=Object.assign({},r.ins||{});tab='habits';render();toast('ریکارڈ کھل گیا')}
+ else if(act==='open'&&r){$('#pn').value=r.n||'';$('#pp').value=r.ph||'';$('#pa').value=r.age||'';$('#pg').value=r.g||'';$('#ps').value=r.sym||'';$('#pt').value=r.notes||'';setVals(r.v);sel=new Set(r.rx||[]);ins=Object.assign({},r.ins||{});{const dd=diag(r.v);fcs=new Set(Array.isArray(r.fc)?r.fc:(dd.i>=0?FM[dd.i]:[]))}tab='habits';render();toast('ریکارڈ کھل گیا')}
  else if(act==='del'&&r&&confirm('یہ وزٹ حذف کر دیں؟')){store(a.filter(x=>x!==r));render()}});
 document.addEventListener('input',e=>{const x=e.target.closest('[data-ins]');if(x)ins[x.dataset.ins]=x.value});
 document.addEventListener('change',e=>{const c=e.target.closest('[data-sel]');if(!c)return;const k=c.dataset.sel;c.checked?sel.add(k):(sel.delete(k),delete ins[k]);const ta=c.closest('.med').querySelector('[data-ins]');if(ta){ta.hidden=!c.checked;if(!c.checked)ta.value=''}const mk=c.closest('details').querySelector('.mk');if(mk)mk.textContent=c.checked?' ✓':'';upSc()});
+document.addEventListener('change',e=>{const c=e.target.closest('[data-fc]');if(!c)return;const n=+c.dataset.fc;c.checked?fcs.add(n):fcs.delete(n);upSc()});
+document.addEventListener('click',e=>{const b=e.target.closest('[data-fa]');if(!b)return;fcs=new Set(b.dataset.fa==='rec'&&cur.ok&&cur.i>=0?FM[cur.i]:[]);render()});
 $('#sv').onclick=()=>{if(!cur.ok){$('#er').textContent='ریکارڈ محفوظ کرنے سے پہلے درست پیمائشیں درج کریں۔';return}
  if(!$('#pn').value.trim()){$('#er').textContent='ریکارڈ کے لیے مریض کا نام لکھیں۔';$('#pn').focus();return}
  const a=load(),r=curRec();r.id=Date.now();r.i=cur.i;a.unshift(r);if(store(a.slice(0,2000))){tab='hist';q='';render();toast('ریکارڈ محفوظ ہو گیا')}else $('#er').textContent='ریکارڈ محفوظ نہیں ہو سکا۔ براؤزر کی اسٹوریج بند ہو سکتی ہے۔'};
-$('#rs').onclick=()=>{['#pn','#pp','#pa','#pg','#ps','#pt'].forEach(s=>$(s).value='');sel.clear();ins={};[1,3,2].forEach((x,i)=>F[i].v=x);buildInputs();upd()};
+$('#rs').onclick=()=>{['#pn','#pp','#pa','#pg','#ps','#pt'].forEach(s=>$(s).value='');sel.clear();ins={};lastI=-9;[1,3,2].forEach((x,i)=>F[i].v=x);buildInputs();upd()};
 $('#th').onclick=()=>{const r=document.documentElement,dk=matchMedia('(prefers-color-scheme:dark)').matches,n=r.dataset.theme||(dk?'dark':'light');r.dataset.theme=n==='dark'?'light':'dark'};
 $('#lg0').src=LOGO;
 const DK='nabz-aasan-doctor';let DR=null;try{DR=JSON.parse(localStorage.getItem(DK)||'null')}catch(e){}
@@ -310,5 +321,6 @@ $('#wa').href='https://wa.me/923083286645?text='+encodeURIComponent('السلا�
 buildInputs();upd();if(!DR)openProf();
 if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)&&!NAT())addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 </script>
+<script src="chat.js"></script>
 </body>
 </html>
