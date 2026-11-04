@@ -133,7 +133,7 @@ const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;',
 const F=[{k:'p',n:'نبض کی رفتار',min:1,max:3,v:1,c:[['مشرف',1],['معتدل',2],['منخفض',3]]},
  {k:'l',n:'نبض کی لمبائی',min:1,max:4,v:3,c:[['قصیر',1.5],['معتدل',2.5],['طویل',4]]},
  {k:'w',n:'نبض کی چوڑائی',min:1,max:3,v:2,c:[['ضیق',1],['معتدل',2],['عریض',3]]}];
-const SEC=[['dash','ڈیش بورڈ','ڈیش بورڈ'],['chat','سوال جواب','سوال جواب'],['habits','علامات','عادات و علامات'],['tahrik','تحریک','تحریک کے عوارضات'],['tahlil','تحلیل','تحلیل کے عوارضات'],['taskeen','تسکین','تسکین کے عوارضات'],['takhdeer','تخدیر','تخدیر کے عوارضات'],['ilaj','علاج','علاج و فارماکوپیا'],['food','غذا','غذائی چارٹ'],['hist','ہسٹری','مریضوں کی ہسٹری'],['backup','بیک اپ','بیک اپ اور بحالی']];
+const SEC=[['dash','ڈیش بورڈ','ڈیش بورڈ'],['habits','علامات','عادات و علامات'],['tahrik','تحریک','تحریک کے عوارضات'],['tahlil','تحلیل','تحلیل کے عوارضات'],['taskeen','تسکین','تسکین کے عوارضات'],['takhdeer','تخدیر','تخدیر کے عوارضات'],['ilaj','علاج','علاج و فارماکوپیا'],['food','غذا','غذائی چارٹ'],['hist','ہسٹری','مریضوں کی ہسٹری'],['backup','بیک اپ','بیک اپ اور بحالی']];
 const MEDS=['محرک','شدید محرک','ملیّن','مُسہل','اکسیر','تریاق'];
 const FM=[[2,3,4,5],[4,5,6,7],[4,5,6,7],[1,6,7,8],[1,6,7,8],[1,2,3,8],[1,2,3,8],[2,3,4,5]];
 const NC=i=>`hsl(${i*45+160} 38% 42%)`;
@@ -167,7 +167,6 @@ function render(){const el=$('#ct'),d=cur;upSc();
  if(tab==='dash'){el.innerHTML=dashHTML();return}
  if(tab==='hist'){el.innerHTML=H('مریضوں کی ہسٹری')+`<input class="in" id="hs" placeholder="نام یا موبائل نمبر سے تلاش کریں" aria-label="تلاش" value="${esc(q)}"><div id="hl">${histHTML()}</div>`;$('#hs').oninput=e=>{q=e.target.value;$('#hl').innerHTML=histHTML()};return}
  if(tab==='backup'){el.innerHTML=bkHTML();return}
- if(tab==='chat'){NabzChat.show(el);return}
  if(!d.ok){el.innerHTML='<div class="empty">پہلے تینوں پیمائشیں مقررہ حد کے اندر درج کریں۔ اس کے بعد تشخیص اور تمام تفصیلات یہاں ظاہر ہو جائیں گی۔</div>';return}
  if(d.health){el.innerHTML=H('صحت')+'<div class="ok">آپ کی صحت بالکل ٹھیک ہے۔ تینوں پیمائشیں معتدل ہیں، اس لیے علاج کی ضرورت نہیں۔</div>';return}
  const t=T[d.i];let h=H(SEC.find(s=>s[0]===tab)[2])+`<p class="sub">قسم نبض: ${t}</p>`;
@@ -196,7 +195,7 @@ function histHTML(){const a=load(),s=q.trim().toLowerCase(),g={};a.forEach(r=>{i
  const k=Object.keys(g);if(!k.length)return`<div class="empty">${a.length?'تلاش سے کوئی مریض نہیں ملا۔':'ابھی کوئی ریکارڈ محفوظ نہیں۔'}</div>`;
  return k.map(key=>{const v=g[key],f=v[0];return`<details><summary><span>${esc(f.n||'نام درج نہیں')}${f.age?' ('+esc(f.age)+' سال)':''}</span><span>${v.length} وزٹ</span></summary><div class="med">${f.ph?`<p class="sub" dir="ltr" style="text-align:right">${esc(f.ph)}</p>`:''}${v.map(visit).join('')}</div></details>`}).join('')}
 // رپورٹ
-function repHTML(r){const d=diag(r.v),t=tname(d),dr=DR||{name:D.name,phone:D.phone};
+function repHTML(r){const d=diag(r.v),t=tname(d),dr=DR||{name:'',phone:''};
  let h=`<div class="hd"><img src="${LOGO}"><div><h1>${esc(dr.name)}</h1>${dr.clinic?`<div>${esc(dr.clinic)}</div>`:''}${dr.addr?`<div>${esc(dr.addr)}</div>`:''}${dr.phone?`<div dir="ltr" style="text-align:right">${esc(dr.phone)}</div>`:''}</div></div>
  <table><tr><td>نام</td><td>${esc(r.n||'—')}</td><td>عمر</td><td>${esc(r.age||'—')}</td></tr><tr><td>فون</td><td dir="ltr" style="text-align:right">${esc(r.ph||'—')}</td><td>جنس</td><td>${esc(r.g||'—')}</td></tr><tr><td>تاریخ</td><td>${dt(r.ts)}</td><td>تشخیص</td><td><b>${t}</b></td></tr></table>`;
  if(r.sym)h+=`<h3>مریض کی بیان کردہ علامات</h3><p>${esc(r.sym)}</p>`;
@@ -207,7 +206,7 @@ function repHTML(r){const d=diag(r.v),t=tname(d),dr=DR||{name:D.name,phone:D.pho
   const fc=(Array.isArray(r.fc)?r.fc:FM[d.i]).filter(n=>n>=1&&n<=8),gd=fc.filter(n=>FM[d.i].includes(n)).sort((a,b)=>a-b),bd=fc.filter(n=>!FM[d.i].includes(n)).sort((a,b)=>a-b),li=n=>`<p>چارٹ ${n}: ${esc(foodItems(n).join('، '))}</p>`;
    if(gd.length)h+='<h3>غذائی چارٹ</h3>'+gd.map(li).join('');
    if(bd.length)h+='<h3>پرہیز (ان چارٹس کی غذائیں نہ کھائیں)</h3>'+bd.map(li).join('')}
- return`<div class="rp">${h}<div class="ft" dir="ltr">Developed By Muhammad Ashraf — WhatsApp 923083286645</div></div>`}
+ return`<div class="rp">${h}</div>`}
 function curRec(){return{n:$('#pn').value.trim(),ph:$('#pp').value.trim(),age:$('#pa').value.trim(),g:$('#pg').value,sym:$('#ps').value.trim(),notes:$('#pt').value.trim(),ts:new Date().toISOString(),v:vals(),rx:[...sel],fc:[...fcs].sort((a,b)=>a-b),ins:Object.fromEntries([...sel].map(k=>[k,(ins[k]||'').trim()]).filter(x=>x[1]))}}
 const waNum=p=>{let n=String(p||'').replace(/\D/g,'');if(n.startsWith('00'))n=n.slice(2);else if(n.startsWith('0'))n='92'+n.slice(1);else if(n.length===10&&n[0]==='3')n='92'+n;return n};
 function waMsg(r){const d=diag(r.v),dr=DR||{},LR='\u200E',L=[];
@@ -321,6 +320,5 @@ $('#wa').href='https://wa.me/923083286645?text='+encodeURIComponent('السلا�
 buildInputs();upd();if(!DR)openProf();
 if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)&&!NAT())addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 </script>
-<script src="chat.js"></script>
 </body>
 </html>
